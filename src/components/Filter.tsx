@@ -3,6 +3,7 @@ import { MovieClubDataType, GenreType, SuggestorsFilter } from "../types";
 import { Button, Box, Chip, Typography } from "@mui/material";
 import { BsSliders } from "react-icons/bs";
 import { TiTick } from "react-icons/ti";
+import { options } from "../.config/tmdb-options";
 
 //this could be like a dropdown or whatever
 
@@ -31,14 +32,6 @@ export const Filter = ({
     { name: "Group", active: false },
   ]);
   const getGenres = async () => {
-    const options = {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwYWJhYmUyYzBlMDc4MDRlOTQ2MzQ4ZjI2NGYxNzQzZiIsInN1YiI6IjY2MGNjNGZjNWFhZGM0MDE2MzY0MjQwZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.bp4isioU5fwnHLfI8FwyKkg99goTbNiJNMA5hQP5IZQ",
-      },
-    };
     const genresFromAPI = await fetch(
       `https://api.themoviedb.org/3/genre/movie/list`,
       options
@@ -53,8 +46,6 @@ export const Filter = ({
     // setActiveGenres(genresFromAPI.genres);
   };
   useEffect(() => {
-    // https://api.themoviedb.org/3/genre/movie/list
-    //call the api that gets genres
     getGenres();
   }, []);
 
