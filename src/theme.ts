@@ -1,43 +1,72 @@
 import { createTheme } from "@mui/material/styles";
 import "@fontsource/space-mono";
 import "@fontsource/open-sans";
+import "@fontsource/alegreya-sans";
+
+declare module "@mui/material/styles" {
+  //these are called as partials so you don't need to make them optional ( I think )
+  interface TypeBackground {
+    navbar: string;
+    filter: string;
+    default: string;
+    footer: string;
+  }
+}
 
 export const darkTheme = createTheme({
   typography: {
-    fontFamily: "Space Mono",
+    fontFamily: "Open Sans",
     h1: {
-      fontFamily: "Alegreya Sans",
+      fontFamily: "Open Sans",
       fontSize: "4em",
       textAlign: "center",
     },
     h2: {
       fontSize: "3em",
-      paddingTop: "0",
-      fontFamily: "Arimo",
+      fontFamily: "Open Sans",
       fontWeight: "600",
     },
     h3: {
-      fontSize: "2em",
-      fontFamily: "Arimo",
+      fontSize: "1.2em",
+      fontFamily: "Open Sans",
       fontWeight: "400",
     },
     h4: {
-      fontFamily: "Arimo",
-      textAlign: "center",
+      fontFamily: "Space Mono",
+      fontSize: "1.5em",
+      color: "#F5F5F5",
     },
     h5: {
       fontFamily: "Open Sans",
       fontSize: "0.8em",
+      color: "#F5F5F5",
     },
     caption: {
       fontFamily: "Space Mono",
+      fontSize: "0.9em",
+      color: "#F5F5F5",
+    },
+    body1: {
+      fontFamily: "Open Sans",
+      fontSize: "1em",
+      color: "#F5F5F5",
+    },
+    body2: {
+      fontFamily: "Open Sans",
       fontSize: "0.7em",
+      color: "#F5F5F5",
     },
   },
   palette: {
-    mode: "light",
-    // primary: {
-    //   main: "#F5F5F5",
-    // },
+    mode: "dark",
+    primary: {
+      main: "#F5F5F5",
+    },
+    background: {
+      navbar: "#030B11",
+      filter: "#030B11",
+      default: "#292929",
+      footer: "#030B11",
+    },
   },
 });

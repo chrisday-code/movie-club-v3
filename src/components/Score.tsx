@@ -1,5 +1,18 @@
-import { Box, Typography } from "@mui/material";
-import { motion } from "framer-motion";
+import React from "react";
+// import { useEffect, useState, useRef } from "react";
+// import { MovieTile } from "./MovieTile";
+// import { Filter } from "./Filter";
+import { motion, AnimatePresence } from "framer-motion";
+// import { MovieClubDataType, GenreType } from "../types";
+// import { GoogleSpreadsheet } from "google-spreadsheet";
+// import { useTheme } from "@mui/material/styles";
+// import { JWT } from "google-auth-library";
+import { Grid, Box, Typography, Button } from "@mui/material";
+// import { options } from "../.config/tmdb-options";
+// import creds from "../.config/movie-club-394513-ccb57476d1f7.json";
+// import { GOOGLE_SHEET_ID } from "../.config/google-sheets";
+
+// const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 
 export const Score = (props: any) => {
   return (
@@ -11,7 +24,7 @@ export const Score = (props: any) => {
       // layout="opacity"
       sx={{
         position: "absolute",
-        backgroundColor: "white",
+        // backgroundColor: "white",
         marginTop: "-20px",
         marginLeft: "55px",
         border: "1px solid",
