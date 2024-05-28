@@ -23,6 +23,7 @@ import { Login } from "./Login";
 import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
 import Visibility from "@mui/icons-material/Visibility";
+import { useNavigate } from "react-router-dom";
 // import SearchIcon from "@mui/icons-material/Search";
 
 interface NavLinks {
@@ -49,6 +50,7 @@ const SearchResult = ({ title, release_date, id }: Result) => {
 };
 
 export const Navbar = () => {
+  const navigate = useNavigate();
   const authContext = useContext(AuthContext);
   if (!authContext) {
     throw new Error("AuthStatus must be used within an AuthProvider");
@@ -109,11 +111,12 @@ export const Navbar = () => {
                 position: "absolute",
                 padding: "20px 5px 5px 5px",
                 right: "0px",
+                top: "10px",
                 zIndex: "10",
               }}
               bgcolor={theme.palette.background.navbar}
             >
-              <Login />
+              <Login setShowLogin={setShowLogin} />
             </Box>
           )}
         </ListItem>
@@ -147,7 +150,7 @@ export const Navbar = () => {
 
   const handleChange = (event: any) => {
     const value = event.target.value;
-    // console.log(value);
+    console.log("handling change,", event);
     setSearch(value);
     searchApi();
   };
@@ -179,13 +182,20 @@ export const Navbar = () => {
     // do something when there are new search results
   }, [searchResults]);
 
+  const keyPress = (e: any) => {
+    if (e.keyCode === 13) {
+      e.preventDefault();
+      navigate(`/search/${search}`);
+    }
+  };
+
   return (
     <Box
       sx={{
         position: "fixed",
         width: "100%",
         zIndex: "4",
-        height: { xs: "7vh", sm: "5vh" },
+        height: { xs: "70px", sm: "70px" },
       }}
       bgcolor={theme.palette.background.navbar}
     >
@@ -230,6 +240,7 @@ export const Navbar = () => {
                 type="text"
                 onChange={handleChange}
                 value={search}
+                onKeyDown={keyPress}
                 endAdornment={
                   <InputAdornment position="end">
                     <Link
@@ -269,31 +280,6 @@ export const Navbar = () => {
             </form>
           </Box>
           <Box>{links(false)}</Box>
-          <Box sx={{ display: { xs: "flex", md: "none" } }}>
-            <IconButton
-              aria-label="delete"
-              size="large"
-              sx={{ height: "40px", width: "40px" }}
-              onClick={() => {
-                setShowLogin(!showLogin);
-              }}
-            >
-              <VpnKey fontSize="inherit" />
-            </IconButton>
-            {showLogin && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  padding: "20px 5px 5px 5px",
-                  right: "0px",
-                  zIndex: "10",
-                }}
-                bgcolor={theme.palette.background.navbar}
-              >
-                <Login />
-              </Box>
-            )}
-          </Box>
         </Toolbar>
       </AppBar>
     </Box>

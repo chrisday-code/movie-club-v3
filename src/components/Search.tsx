@@ -5,6 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import { searchTMDB } from "../helpers/tmdbapis";
 import { DetailedSearchResult } from "../types";
 import { options } from "../.config/tmdb-options";
+import { Loader } from "./Loader";
 
 import { useState, useEffect, useRef } from "react";
 
@@ -15,8 +16,10 @@ export const Search = () => {
   const [searchResults, setSearchResults] = useState<DetailedSearchResult[]>(
     []
   );
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     // console.log("params", params);
     const searchApi = async (query: string) => {
       if (query === "") {
@@ -31,13 +34,13 @@ export const Search = () => {
         newSearchResults.push({
           id: result.id,
           title: result.title,
-          poster: result.poster_path,
+          poster_path: result.poster_path,
           release_date: result.release_date,
         });
         // i++;
       }
       console.log("results.results:", results.results);
-      setSearchResults(newSearchResults);
+      setSearchResults([...newSearchResults]);
     };
     if (params.query) {
       searchApi(params.query);
@@ -46,6 +49,10 @@ export const Search = () => {
       //call the movies API for the search term
     }
   }, [params]);
+
+  useEffect(() => {
+    setLoading(false);
+  }, [searchResults]);
 
   // loop through search results
 
@@ -60,18 +67,28 @@ export const Search = () => {
         minHeight: "89vh",
       }}
     >
-      {searchResults.map((result, index) => {
-        return <SearchResult result={result}></SearchResult>;
-      })}
+      {/* <Typography
+        variant="h2"
+        color={theme.palette.primary.main}
+        sx={{ paddingBottom: "1em" }}
+      >
+        Search for a movie
+      </Typography> */}
+      {!loading &&
+        searchResults.map((result, index) => {
+          return <SearchResult result={result}></SearchResult>;
+        })}
       {searchResults.length === 0 && (
         <Typography
-          variant="h1"
+          variant="body1"
           color={theme.palette.primary.main}
           sx={{ paddingTop: "1em" }}
         >
-          Search for a movie
+          No results
         </Typography>
       )}
+
+      {loading && <Loader />}
     </Box>
   );
 };

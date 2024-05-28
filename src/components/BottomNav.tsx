@@ -90,7 +90,7 @@ export const BottomNav = () => {
         width: "100%",
         zIndex: "4",
         bottom: "0px",
-        height: { xs: "5vh" },
+        height: { xs: "60px" },
         display: { xs: "flex", md: "none" },
         flexDirection: "row",
         alignItems: "center",

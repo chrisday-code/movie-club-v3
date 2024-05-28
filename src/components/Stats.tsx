@@ -8,6 +8,7 @@ import {
   PersonalReview,
   Reviewer,
   GenreReview,
+  Country,
 } from "../types";
 import { GoogleSpreadsheet } from "google-spreadsheet";
 import { useTheme } from "@mui/material/styles";
@@ -23,14 +24,21 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import { MovieLocationMap } from "./MovieLocationMap";
+import { useContext } from "react";
+import { AuthContext } from "../AuthContext";
+import { getCountryISO3 } from "../utils/iso-2-to-3";
 
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 
 export const Stats = () => {
+  const authContext = useContext(AuthContext);
+  const theme = useTheme();
   const initialized = useRef(false);
   const [movies, setMovies] = useState<Array<MovieClubDataType>>([]);
   const [rows, setRows] = useState<Array<Reviewer>>([]);
   const [genres, setGenres] = useState<Array<GenreType>>([]);
+  const [countries, setCountries] = useState<Map<string, Country>>(new Map());
   //TODO get these from the google sheet
   const Light = -0.25;
   const Strong = 0.25;
@@ -95,9 +103,10 @@ export const Stats = () => {
             director: row.get("Director"),
             runtime: Number(row.get("Runtime")),
             tmdb_score: Number(row.get("Tmdb Score")),
+            origin_country: row.get("Country").split(","),
           });
         }
-        console.log("sheetData: ", sheetData);
+        // console.log("sheetData: ", sheetData);
         setMovies(sheetData);
         return;
       };
@@ -160,8 +169,6 @@ export const Stats = () => {
     // if its got a word out the front then convert bit that too
     return rating;
   };
-
-  // map of like genre and then id or something
 
   useEffect(() => {
     if (movies.length === 0) return;
@@ -226,7 +233,29 @@ export const Stats = () => {
       return max.name;
     };
 
+    const myCountries = new Map<string, Country>(); // should be a map
+
     for (const movie of movies) {
+      // export interface Country {
+      //   name: string;
+      //   count: number;
+      // }
+
+      for (const shortCountryCode of movie.origin_country) {
+        // console.log("country:", country);
+        const country = getCountryISO3(shortCountryCode);
+        if (myCountries.has(country)) {
+          //trust me its not null
+          const currentVal: Country = myCountries.get(country)!;
+          currentVal.count += 1;
+          if (currentVal.name !== "ignore") {
+            myCountries.set(country, currentVal);
+          }
+        } else {
+          myCountries.set(country, { name: country, count: 1 } as Country);
+        }
+      }
+      // if(myCountries.has())
       // find and add the reviews
       // add the titles to each value
       for (const [reviewerName, value] of reviewerMap) {
@@ -249,6 +278,9 @@ export const Stats = () => {
         value.reviews.push(review);
       }
     }
+    console.log("myCountries in stats:", myCountries);
+
+    setCountries(myCountries);
     // add all these to an row object
     const ranks = [];
     // add the number watched to each entry
@@ -268,7 +300,7 @@ export const Stats = () => {
       }
       value.watched = value.reviews.length;
       value.avg_review = totalRating / value.watched;
-      console.log("reviewerName: ", reviewerName);
+      // console.log("reviewerName: ", reviewerName);
       value.fav_genre = findFavouriteGenre(value.reviews);
       if (reviewerName !== "Mystery") {
         value.avg_suggested = suggestedRating / value.suggested.length;
@@ -287,10 +319,10 @@ export const Stats = () => {
       tableRows.push(value);
     }
     tableRows.sort((a, b) => a.rank - b.rank);
-    //rank
+    // rank
     // get the ranks for each map entry
 
-    //set the rows to the values
+    // set the rows to the values
     // tricks js lol
     setRows([...tableRows]);
 
@@ -306,7 +338,33 @@ export const Stats = () => {
   // avg_suggested: number,
   // streak: Array<number>
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "89vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "89vh",
+        alignItems: "center",
+        paddingTop: "10px",
+        gap: "1em",
+        backgroundColor: theme.palette.background.stats,
+      }}
+    >
+      <Typography
+        variant="h3"
+        fontSize="1.8em"
+        color={theme.palette.primary.main}
+      >
+        {" "}
+        Movie Map
+      </Typography>
+      <MovieLocationMap countries={countries} />
+      <Typography
+        variant="h3"
+        fontSize="1.8em"
+        color={theme.palette.primary.main}
+      >
+        Member Stats
+      </Typography>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>

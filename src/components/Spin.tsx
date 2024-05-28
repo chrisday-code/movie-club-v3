@@ -64,6 +64,7 @@ const Spinner = ({
   const [rotation, setRotation] = useState(0);
   // const circleRadius = 200;
   const centre: Center = { rx: width / 2, ry: height / 2 };
+  const theme = useTheme();
   // const width = 600;
   // const height = 600;
 
@@ -128,16 +129,17 @@ const Spinner = ({
 
   const getColor = (value: number) => {
     const colors = [
-      "#e6194B", // Red
-      "#3cb44b", // Green
-      "#ffe119", // Yellow
-      "#4363d8", // Blue
-      "#f58231", // Orange
-      "#911eb4", // Purple
-      "#42d4f4", // Cyan
-      "#f032e6", // Magenta
-      "#bfef45", // Lime
-      "#fabebe", // Pink
+      "#02253B", // Prussian blue
+      "#6B0504", // Blood red
+      "#006DA3", // Bice Blue
+      "#800020", // Brunswick green
+      "#400A4C", // Russian Violet
+      "#654321", // Dark Brown
+      "#301934", // Deep Purple
+      "#191970", // Midnight Blue
+      "#556B2F", // Olive Green
+      "#6A5ACD", // Slate Blue
+      "#800000", // Maroon
     ];
     if (value < colors.length) {
       return colors[value];
@@ -186,6 +188,7 @@ const Spinner = ({
                 <text
                   x={centre.rx + centre.rx / 10}
                   y={centre.ry}
+                  fill={theme.palette.primary.main}
                   transform={`rotate(${segment.textAngle}, ${centre.rx}, ${centre.ry})`}
                   dominantBaseline="central"
                 >
@@ -386,7 +389,7 @@ export const Spin = () => {
         flexDirection: "column",
         alignItems: "center",
         minHeight: "90vh",
-        backgroundColor: "#003153",
+        backgroundColor: theme.palette.background.default,
         color: "whiteSmoke",
         paddingTop: "5vh",
       }}
@@ -432,14 +435,14 @@ export const Spin = () => {
             flexDirection: "column",
           }}
         >
-          <Button
+          {/* <Button
             onClick={getNextWeeksMovie}
             sx={{ marginBottom: "2em" }}
             variant="outlined"
           >
             {" "}
             Get Next Week
-          </Button>
+          </Button> */}
           <Button
             onClick={getSuggestions}
             sx={{ marginBottom: "2em" }}
@@ -474,7 +477,7 @@ export const Spin = () => {
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button onClick={setMovieAsWinner}>Confirm</Button>
+              <Button onClick={setMovieAsWinner}>Set as Next Week</Button>
               <Button onClick={handleClose}>Close</Button>
             </DialogActions>
           </Dialog>

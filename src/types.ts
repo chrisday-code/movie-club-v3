@@ -14,8 +14,14 @@ export interface Result {
 export interface DetailedSearchResult {
   id: number;
   title: string;
-  poster: string;
+  poster_path: string;
   release_date: string;
+}
+
+// TODO add movies to each country
+export interface Country {
+  name: string;
+  count: number;
 }
 
 export type Suggestion = {
@@ -49,6 +55,7 @@ export type MovieClubDataType = {
   runtime: number;
   tmdb_score: number;
   genres: Array<GenreType>;
+  origin_country: string[];
 };
 
 export type MovieClubData = {

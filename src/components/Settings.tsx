@@ -11,14 +11,16 @@ import { JWT } from "google-auth-library";
 import { options } from "../.config/tmdb-options";
 import creds from "../.config/movie-club-394513-ccb57476d1f7.json";
 import { GOOGLE_SHEET_ID } from "../.config/google-sheets";
+import { useContext } from "react";
+import { AuthContext } from "../AuthContext";
 
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 
 export const Settings = () => {
-  //TODO update movie club data, I want to store basically everything you get from the call movie api
-  // Figure out threads or something for this
+  const authContext = useContext(AuthContext);
+  const theme = useTheme();
+  // TODO Figure out threads or something for this
   const getTMDBData = async () => {
-    console.log("clicked");
     const jwt = new JWT({
       email: creds.client_email,
       key: creds.private_key,
@@ -26,10 +28,8 @@ export const Settings = () => {
     });
     const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID, jwt);
     await doc.loadInfo(); // loads document properties and worksheets
-    console.log("doc");
     const sheet = doc.sheetsByTitle["computer"]; // or use `doc.sheetsById[id]` or `doc.sheetsByTitle[title]`
     const rows = await sheet.getRows();
-    console.log("wow");
     let i = 1;
     await sheet.loadCells("A1:Z300");
     for (const row of rows) {
@@ -40,7 +40,7 @@ export const Settings = () => {
         i++;
         continue;
       }
-      if (row.get("Poster")) {
+      if (row.get("Country")) {
         i++;
         continue;
       }
@@ -72,6 +72,16 @@ export const Settings = () => {
       const url = `https://api.themoviedb.org/3/movie/${tmdbId}`;
       const movie = await fetch(url, options).then((data) => data.json());
       console.log("movie: ", movie);
+      const country = await sheet.getCell(i, 22);
+      country.value = movie.origin_country.join();
+
+      console.log("origin_country", movie.origin_country.join());
+
+      i++;
+      continue;
+
+      // return;
+
       const tmdb_title = await sheet.getCell(i, 20);
       tmdb_title.value = movie.title;
 
@@ -126,13 +136,25 @@ export const Settings = () => {
     sheet.saveUpdatedCells();
     return;
   };
-  //
+
+  //get the origin countries
+
   return (
     <Box
-      sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        backgroundColor: theme.palette.background.settings,
+        minHeight: "89vh",
+      }}
     >
       <Typography variant="h1"> Settings</Typography>
-      <Button variant="outlined" onClick={getTMDBData}>
+      <Button
+        variant="outlined"
+        // disabled={!authContext.isAuthenticated}
+        onClick={getTMDBData}
+      >
         {" "}
         Update Data
       </Button>

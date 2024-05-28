@@ -10,6 +10,9 @@ declare module "@mui/material/styles" {
     filter: string;
     default: string;
     footer: string;
+    settings: string;
+    stats: string;
+    ranks: string;
   }
 }
 
@@ -65,8 +68,11 @@ export const darkTheme = createTheme({
     background: {
       navbar: "#030B11",
       filter: "#030B11",
-      default: "#292929",
+      default: "#030B11",
       footer: "#030B11",
+      settings: "#030B11",
+      stats: "#030B11",
+      ranks: "#030B11",
     },
   },
 });

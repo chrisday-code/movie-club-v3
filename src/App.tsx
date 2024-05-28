@@ -34,7 +34,7 @@ function App() {
           <Navbar />
           <Box
             sx={{
-              minHeight: { xs: "7vh", sm: "5vh" },
+              minHeight: { xs: "70px", sm: "70px" },
               minWidth: { xs: "100vw" },
             }}
           ></Box>

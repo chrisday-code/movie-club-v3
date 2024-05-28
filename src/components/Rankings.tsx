@@ -86,6 +86,7 @@ export const Rankings = () => {
             director: row.get("Director"),
             runtime: Number(row.get("Runtime")),
             tmdb_score: Number(row.get("Tmdb Score")),
+            origin_country: row.get("Country").split(","),
           });
         }
         console.log("sheetData: ", sheetData);
@@ -108,8 +109,8 @@ export const Rankings = () => {
       sx={{
         minHeight: "90vh",
         // width: "vw",
-        backgroundImage: "linear-gradient(#04213A, #1077D1)",
-        backgroundAttachment: "fixed",
+        // backgroundImage: "linear-gradient(#04213A, #1077D1)",
+        // backgroundAttachment: "fixed",
         backgroundColor: `${theme.palette.background.default}`,
         padding: "2% 2% 2% 2%",
       }}

@@ -4,7 +4,11 @@ import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
 import { authkey, validUsers } from "../.config/auth";
 
-export const Login = () => {
+interface LoginProps {
+  setShowLogin: React.Dispatch<React.SetStateAction<boolean>>; // Define the type of the onData prop
+}
+
+export const Login = ({ setShowLogin }: LoginProps) => {
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
   //todo validation instead of error
@@ -25,6 +29,7 @@ export const Login = () => {
       setUserError(false);
       if (authkey === password) {
         authContext.login(user);
+        setShowLogin(false);
         setPassError(false);
       } else {
         setPassError(true);

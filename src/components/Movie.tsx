@@ -39,7 +39,6 @@ import { ReviewerComponent } from "./ReviewerComponent";
 
 import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
-import { authkey, validUsers } from "../.config/auth";
 
 // context
 
@@ -55,7 +54,6 @@ export const Movie = () => {
   const [loading, setLoading] = useState(true);
   const [movieId, setMovieId] = useState(0); // TODO remove this to make the next week thingy work 414906
   const [movieFromApi, setMovieDetailsApi] = useState<MovieDetailsFromApi>();
-  const [user, setUser] = useState("Chris"); //this shouldn't be in state it should be a useContext probably
   const initialized = useRef(false);
   // this should probably be a map
   const [movieClubMovies, setMovieClubMovies] = useState<
@@ -148,6 +146,7 @@ export const Movie = () => {
             director: row.get("Director"),
             runtime: Number(row.get("Runtime")),
             tmdb_score: Number(row.get("Tmdb Score")),
+            origin_country: row.get("Country").split(","),
           });
         }
         // console.log("sheetData: ", sheetData);
@@ -344,7 +343,7 @@ export const Movie = () => {
       }
       if (row.get("Title") === "" || row.get("Title") === undefined) {
         const userCell = await movieSheet.getCell(index + 1, 0);
-        userCell.value = user;
+        userCell.value = authContext.user;
         const titleCell = await movieSheet.getCell(index + 1, 1);
         titleCell.value = title;
         titleCell.textFormat = { bold: true };
@@ -476,7 +475,9 @@ export const Movie = () => {
     const movieSheet = doc.sheetsByTitle["Movies"]; // or use `doc.sheetsById[id]` or `doc.sheetsByTitle[title]`
     const movieRows = await movieSheet.getRows({ limit: 300 });
     await movieSheet.loadCells("A1:I300");
-    const reviewerIndex = reviewerOrder.get(user) ? reviewerOrder.get(user) : 0;
+    const reviewerIndex = reviewerOrder.get(authContext.user)
+      ? reviewerOrder.get(authContext.user)
+      : 0;
     if (!reviewerIndex) {
       console.log("index wrong");
       return;
@@ -565,7 +566,7 @@ export const Movie = () => {
   const renderBuying = (providers: any) => {
     console.log("providers:", providers);
     if (!providers) {
-      return <Box>no clue</Box>;
+      return <Box>no clue where to buy</Box>;
     }
     if (!providers.buy || providers.buy.length === 0) {
       return <Box> can't buy?</Box>;
@@ -596,7 +597,7 @@ export const Movie = () => {
   const renderStreaming = (providers: any) => {
     console.log("providers:", providers);
     if (!providers) {
-      return <Box>no clue</Box>;
+      return <Box>no clue where to rent</Box>;
     }
     if (!providers.flatrate || providers.flatrate.length === 0) {
       return <Box> can't stream?</Box>;
@@ -643,7 +644,7 @@ export const Movie = () => {
     >
       {/* box for the images and the streaming locations */}
       {loading && <Loader />}
-      {movieDetails && (
+      {movieDetails && !loading && (
         <Box
           sx={{
             display: "flex",
@@ -741,7 +742,7 @@ export const Movie = () => {
                 movieDetails.runtime
               )}
               {/* </Typography> */}
-              {movieDetails.rank !== 0 && (
+              {movieDetails.rank !== 0 && movieDetails.rank !== -1 && (
                 <Box
                   display="flex"
                   flexDirection="row"
