@@ -75,13 +75,6 @@ export const Settings = () => {
       const country = await sheet.getCell(i, 22);
       country.value = movie.origin_country.join();
 
-      console.log("origin_country", movie.origin_country.join());
-
-      i++;
-      continue;
-
-      // return;
-
       const tmdb_title = await sheet.getCell(i, 20);
       tmdb_title.value = movie.title;
 
@@ -152,7 +145,7 @@ export const Settings = () => {
       <Typography variant="h1"> Settings</Typography>
       <Button
         variant="outlined"
-        // disabled={!authContext.isAuthenticated}
+        disabled={!authContext.isAuthenticated}
         onClick={getTMDBData}
       >
         {" "}
