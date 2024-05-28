@@ -113,47 +113,68 @@ export const Rankings = () => {
         // backgroundAttachment: "fixed",
         backgroundColor: `${theme.palette.background.default}`,
         padding: "2% 2% 2% 2%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}
     >
-      <Box sx={{ display: "flex", flexDirection: "column", paddingTop: "1vh" }}>
-        <Filter
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          paddingTop: "1vh",
+        }}
+      >
+        <Box
+          sx={{
+            display: !loading ? "flex" : "none",
+          }}
+        >
+          <Filter
+            filtered={filtered}
+            setFiltered={setFiltered}
+            movies={movies}
+            setMovies={setMovies}
+          />
+        </Box>
+
+        {/* <Filter
           filtered={filtered}
           setFiltered={setFiltered}
           movies={movies}
           setMovies={setMovies}
-        />
+        /> */}
       </Box>
-      <Box>
-        <Box
-          component={motion.div}
-          layout
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}
-        >
-          {!loading && (
-            <AnimatePresence mode="sync">
-              {filtered.map((movie: MovieClubDataType, index) => {
-                return <MovieTile key={movie.id} movie={movie} />;
-              })}
-            </AnimatePresence>
-          )}
-          {loading && (
-            <Box
-              sx={{
-                display: "flex",
-                minHeight: "50vh",
-                justifyContent: "center",
-                alignItems: "center",
-                minWidth: "100vw",
-              }}
-            >
-              <Loader />
-            </Box>
-          )}
-        </Box>
+
+      <Box
+        component={motion.div}
+        layout
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        {!loading && (
+          <AnimatePresence mode="sync">
+            {filtered.map((movie: MovieClubDataType, index) => {
+              return <MovieTile key={movie.id} movie={movie} />;
+            })}
+          </AnimatePresence>
+        )}
+        {loading && (
+          <Box
+            sx={{
+              display: "flex",
+              minHeight: "50vh",
+              justifyContent: "center",
+              alignItems: "center",
+              minWidth: "100vw",
+            }}
+          >
+            <Loader />
+          </Box>
+        )}
       </Box>
     </Box>
   );

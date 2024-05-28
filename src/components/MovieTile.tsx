@@ -5,12 +5,14 @@ import { FaTrophy } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
 import { IconContext } from "react-icons";
 import { useTheme } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 interface TileProps {
   movie: MovieClubDataType;
 }
 
 export const MovieTile = ({ movie }: TileProps) => {
+  const navigate = useNavigate();
   const theme = useTheme();
   return (
     <Box
@@ -19,7 +21,6 @@ export const MovieTile = ({ movie }: TileProps) => {
       initial={{ scale: 0 }}
       exit={{ scale: 0 }}
       layout
-      // make this 30% on small screens
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -50,12 +51,19 @@ export const MovieTile = ({ movie }: TileProps) => {
         <Typography variant="caption" sx={{ marginRight: "5%" }}>
           {movie.rank}
         </Typography>
-        <IconContext.Provider value={{ color: "black" }}>
+        <IconContext.Provider value={{ color: theme.palette.primary.main }}>
           <FaStar />
         </IconContext.Provider>
         <Typography variant="caption">{movie.score.toFixed(2)}</Typography>
       </Box>
-      <Typography variant="h5" sx={{ fontSize: "0.9em", textAlign: "center" }}>
+      <Typography
+        variant="h5"
+        sx={{ fontSize: "0.9em", textAlign: "center", cursor: "pointer" }}
+        onClick={() => {
+          console.log("going to: ", movie.id);
+          navigate(`/movies/${movie.id}`);
+        }}
+      >
         {movie.tmdb_title}
       </Typography>
     </Box>

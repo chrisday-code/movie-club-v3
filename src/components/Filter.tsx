@@ -55,7 +55,7 @@ export const Filter = ({
 }: FilterProps) => {
   const theme = useTheme();
   const [genres, setGenres] = useState<Array<GenreType>>([]);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   //todo remove this
   const [suggestors, setSuggestors] = useState<Array<SuggestorsFilter>>([
@@ -160,13 +160,22 @@ export const Filter = ({
         )
       );
     });
+    console.log("filtered: ", filtered);
     setFiltered(filtered);
   };
 
   //TODO make a list of chips as well
 
   return (
-    <Box borderRadius={"5px"}>
+    <Box
+      borderRadius={"5px"}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        paddingBottom: "3em",
+      }}
+    >
       <Button
         variant="outlined"
         endIcon={<BsSliders />}
