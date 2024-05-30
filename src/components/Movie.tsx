@@ -71,7 +71,6 @@ export const Movie = () => {
   // idk do I want to make this a map with tmdb as key?
 
   useEffect(() => {
-    console.log("params:", params.id);
     if (params.id) {
       setMovieId(Number(params.id));
     }
@@ -104,10 +103,10 @@ export const Movie = () => {
             ) {
               continue;
             }
-            console.log("in");
+            // console.log("in");
             const cell = await movieSheet.getCell(index + 1, 13);
             if (cell.textFormat.bold === true) {
-              console.log(cell.value);
+              // console.log(cell.value);
               setNextWeek(cell.value ? cell.value.toString() : "");
             }
           }
@@ -173,7 +172,6 @@ export const Movie = () => {
       const movieFromApi = await fetch(url, options).then((data) =>
         data.json()
       );
-      console.log("MOVIE FROM API: ", movieFromApi);
       setMovieDetailsApi(movieFromApi);
       setTmdbLoading(false);
     };
@@ -187,7 +185,6 @@ export const Movie = () => {
     // Execute the regex on the input string
     const match = combinedTitle.match(regex);
     if (!match) {
-      console.log("no match");
       return;
     }
     // Return the matched title and year as an array
@@ -197,13 +194,11 @@ export const Movie = () => {
     const url = `https://api.themoviedb.org/3/search/movie?query=${title}&include_adult=false&language=en-USprimary_release_year=${year}&page=1`;
     const results = await fetch(url, options).then((data) => data.json());
     if (results.results[0].id) {
-      console.log("id:", Number(results.results[0].id));
       setMovieId(Number(results.results[0].id));
     }
   };
 
   useEffect(() => {
-    console.log("nextweek:", nextWeek);
     if (!nextWeek || nextWeek === "") return;
     searchApi(nextWeek);
   }, [nextWeek]);
@@ -216,8 +211,6 @@ export const Movie = () => {
     // const reviews:Array<ReviewType>
 
     const movieClubData = movieClubMovies.find((movie) => movie.id === movieId);
-
-    console.log("movieClubData", movieClubData);
     // TODO add director and release date
 
     // tmdb_id: number;
@@ -252,8 +245,6 @@ export const Movie = () => {
       .then((response) => response.json())
       .then((all) => all.results.AU);
 
-    console.log("streamingOptions:", providers);
-
     const newMovieDetails: MoviePage = {
       tmdb_id: movieFromApi.id,
       title: movieFromApi.title,
@@ -262,6 +253,7 @@ export const Movie = () => {
       rank: movieClubData ? movieClubData.rank : 0,
       score: movieClubData ? movieClubData.score : 0,
       director: directorCredits,
+      suggestor: movieClubData ? movieClubData.suggestor : "",
       budget: movieFromApi.budget,
       genres: movieFromApi.genres,
       release_date: movieFromApi.release_date,
@@ -272,7 +264,6 @@ export const Movie = () => {
       providers: providers,
       imdb_id: movieFromApi.imdb_id ? movieFromApi.imdb_id : "",
     };
-    console.log("newMovieDetails", newMovieDetails);
     // director?: string,
     // reviews?: Array<ReviewType>}
     // console.log(newMovieDetails);
@@ -330,7 +321,6 @@ export const Movie = () => {
     const title = `${movieDetails.title} (${
       movieDetails.release_date.split("-")[0]
     })`;
-    console.log("clicked: ", title);
     // read the list incase someone else has added a row inbetween
     const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID, jwt);
     await doc.loadInfo(); // loads document properties and worksheets
@@ -353,12 +343,10 @@ export const Movie = () => {
       }
     }
     movieSheet.saveUpdatedCells();
-    console.log("done movies");
 
     //does the computer bit
     const sheet = doc.sheetsByTitle["computer"]; // or use `doc.sheetsById[id]` or `doc.sheetsByTitle[title]`
     const rows = await sheet.getRows();
-    console.log("wow");
     let i = 1;
     await sheet.loadCells("A1:Z300");
     // do the [object, index ] of array.entries() here instead
@@ -388,8 +376,8 @@ export const Movie = () => {
           imdbId +
           "?external_source=imdb_id";
         const movies = await fetch(url, options).then((data) => data.json());
-        console.log(row.get("Title"));
-        console.log(movies.movie_results[0].id);
+        // console.log(row.get("Title"));
+        // console.log(movies.movie_results[0].id);
         tmdbId = movies.movie_results[0].id;
         const tmdbCell = await sheet.getCell(i, 3);
         tmdbCell.value = movies.movie_results[0].id;
@@ -397,7 +385,6 @@ export const Movie = () => {
 
       const url = `https://api.themoviedb.org/3/movie/${tmdbId}`;
       const movie = await fetch(url, options).then((data) => data.json());
-      console.log("movie: ", movie);
       const tmdb_title = await sheet.getCell(i, 20);
       tmdb_title.value = movie.title;
 
@@ -416,10 +403,8 @@ export const Movie = () => {
       //genre
       const genre = await sheet.getCell(i, 14);
       const genreContent = movie.genres.map((val: any) => {
-        console.log("id: ", val.id, "name: ", val.name);
         return `{"id": ${val.id}, "name": "${val.name}"}`;
       });
-      console.log(genreContent.join("|"));
       genre.value = genreContent.join("|");
 
       //poster
@@ -448,7 +433,6 @@ export const Movie = () => {
 
       i++;
     }
-    console.log("ending");
     sheet.saveUpdatedCells();
     return;
   };
@@ -479,7 +463,7 @@ export const Movie = () => {
       ? reviewerOrder.get(authContext.user)
       : 0;
     if (!reviewerIndex) {
-      console.log("index wrong");
+      // console.log("index wrong");
       return;
     }
     for (const [index, row] of movieRows.entries()) {
@@ -491,14 +475,14 @@ export const Movie = () => {
         row.get("Imdb") ===
         `https://www.imdb.com/title/${movieDetails.imdb_id}/`
       ) {
-        console.log("found the movie", row.get("Title"));
+        // console.log("found the movie", row.get("Title"));
         const reviewCell = await movieSheet.getCell(index + 1, reviewerIndex);
         reviewCell.value = review;
         break;
       }
     }
     movieSheet.saveUpdatedCells();
-    console.log("done movies");
+    // console.log("done movies");
   };
 
   const renderReviews = (reviews?: Array<ReviewType>, title?: string) => {
@@ -536,13 +520,14 @@ export const Movie = () => {
   const renderSubtitle = (
     directors: string[],
     release_date: string,
-    runtime: number
+    runtime: number,
+    suggestor: string
   ) => {
     return (
       <Typography variant="h3" sx={{ marginBottom: "5px" }}>
         {directors.map((director: string) => director)} -{" "}
         {release_date.split("-")[0]} -{" "}
-        {`${Math.floor(runtime / 60)}h ${runtime % 60}m`}
+        {`${Math.floor(runtime / 60)}h ${runtime % 60}m`} - {suggestor}
       </Typography>
     );
   };
@@ -564,7 +549,7 @@ export const Movie = () => {
   };
 
   const renderBuying = (providers: any) => {
-    console.log("providers:", providers);
+    // console.log("providers:", providers);
     if (!providers) {
       return <Box>no clue where to buy</Box>;
     }
@@ -595,7 +580,7 @@ export const Movie = () => {
 
   //TODO there's no way these can't be combined
   const renderStreaming = (providers: any) => {
-    console.log("providers:", providers);
+    // console.log("providers:", providers);
     if (!providers) {
       return <Box>no clue where to rent</Box>;
     }
@@ -637,6 +622,7 @@ export const Movie = () => {
         flexDirection: "column",
         alignItems: "center",
         paddingTop: "5vh",
+        // marginBottom: "10vh",
         minHeight: "90vh",
         color: `${theme.palette.primary.main}`,
         backgroundColor: `${theme.palette.background.default}`,
@@ -651,7 +637,8 @@ export const Movie = () => {
             flexDirection: "column",
             border: "2px solid",
             borderRadius: "5px",
-            padding: "1rem 1rem",
+            padding: "1rem",
+            marginBottom: "10vh",
             background: `linear-gradient(
         rgba(0, 0, 0, 0.8), 
         rgba(0, 0, 0, 0.8)
@@ -739,7 +726,8 @@ export const Movie = () => {
               {renderSubtitle(
                 movieDetails.director,
                 movieDetails.release_date,
-                movieDetails.runtime
+                movieDetails.runtime,
+                movieDetails.suggestor
               )}
               {/* </Typography> */}
               {movieDetails.rank !== 0 && movieDetails.rank !== -1 && (

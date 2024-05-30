@@ -28,6 +28,9 @@ import { MovieLocationMap } from "./MovieLocationMap";
 import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
 import { getCountryISO3 } from "../utils/iso-2-to-3";
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+countries.registerLocale(enLocale);
 
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 
@@ -38,7 +41,10 @@ export const Stats = () => {
   const [movies, setMovies] = useState<Array<MovieClubDataType>>([]);
   const [rows, setRows] = useState<Array<Reviewer>>([]);
   const [genres, setGenres] = useState<Array<GenreType>>([]);
-  const [countries, setCountries] = useState<Map<string, Country>>(new Map());
+  const [countriesMap, setcountriesMap] = useState<Map<string, Country>>(
+    new Map()
+  );
+  const [countriesList, setCountriesList] = useState<Array<Country>>([]);
   //TODO get these from the google sheet
   const Light = -0.25;
   const Strong = 0.25;
@@ -185,10 +191,7 @@ export const Stats = () => {
       if (genres.length === 0) return "";
       // get the genres
       // make a big map of genres and whatever
-      // console.log("reviews:", reviews);
-      // console.log("genres:", genres);
-
-      //make a map of genres and names and
+      // make a map of genres and names and
       const genreMap = new Map<number, GenreReview>();
       for (const genre of genres) {
         genreMap.set(genre.id, {
@@ -232,31 +235,99 @@ export const Stats = () => {
       // find the highest number
       return max.name;
     };
+    //todo combine these
+    const findTopGenre = (movies: MovieClubDataType[]) => {
+      if (genres.length === 0) return { name: "", reviews: [], avg_review: 0 };
+      // get the genres
+      // make a big map of genres and whatever
+      // make a map of genres and names and
+      const genreMap = new Map<number, GenreReview>();
+      for (const genre of genres) {
+        genreMap.set(genre.id, {
+          name: genre.name,
+          reviews: [],
+          avg_review: 0,
+        });
+      }
+      // const reviewsByGenre = [];
+      for (const movie of movies) {
+        for (const genre of movie.genres) {
+          // update the map with the review
+          if (genreMap.has(genre.id)) {
+            const curGenreMapVal = genreMap.get(genre.id);
+            if (curGenreMapVal) {
+              curGenreMapVal.reviews.push(movie.score);
+            }
+          }
+        }
+      }
+      // find the highest average rating
+      // const max = data.reduce(function(prev, current) {
+      //   return (prev && prev.y > current.y) ? prev : current
+      // })
+
+      const maxGenres: GenreReview[] = [];
+      for (const [key, value] of genreMap) {
+        if (value.reviews.length === 0) {
+          continue;
+        }
+        value.avg_review =
+          value.reviews.reduce((acc: number, cur: number) => acc + cur, 0) /
+          value.reviews.length;
+        maxGenres.push(value);
+      }
+
+      const max = maxGenres.reduce((prev, cur) => {
+        return prev && prev.avg_review > cur.avg_review ? prev : cur;
+      });
+
+      // find the highest number
+      return max;
+    };
+
+    const sortMovies = (movieList: MovieClubDataType[]) => {
+      return movieList.sort((a, b) => {
+        if (a.rank === undefined || b.rank === undefined) {
+          return a.runtime - b.runtime; //lol why
+        }
+        if (b.rank === -1) {
+          return -1;
+        }
+        if (a.rank === -1) {
+          return 1;
+        }
+        return a.rank - b.rank;
+      });
+    };
 
     const myCountries = new Map<string, Country>(); // should be a map
 
     for (const movie of movies) {
-      // export interface Country {
-      //   name: string;
-      //   count: number;
-      // }
-
       for (const shortCountryCode of movie.origin_country) {
         // console.log("country:", country);
-        const country = getCountryISO3(shortCountryCode);
-        if (myCountries.has(country)) {
+        const iso3CountryCode = getCountryISO3(shortCountryCode);
+        if (myCountries.has(iso3CountryCode)) {
           //trust me its not null
-          const currentVal: Country = myCountries.get(country)!;
+          const currentVal: Country = myCountries.get(iso3CountryCode)!;
           currentVal.count += 1;
+          currentVal.movies = sortMovies([...currentVal.movies, movie]);
           if (currentVal.name !== "ignore") {
-            myCountries.set(country, currentVal);
+            myCountries.set(iso3CountryCode, currentVal);
           }
         } else {
-          myCountries.set(country, { name: country, count: 1 } as Country);
+          myCountries.set(iso3CountryCode, {
+            id: iso3CountryCode,
+            name: countries.getName(iso3CountryCode, "en", {
+              select: "official",
+            }),
+            movies: [movie],
+            count: 1,
+            avg_score: -1,
+            rank: -1,
+            best_genre: { name: "", reviews: [], avg_review: 0 },
+          } as Country);
         }
       }
-      // if(myCountries.has())
-      // find and add the reviews
       // add the titles to each value
       for (const [reviewerName, value] of reviewerMap) {
         // console.log("reviewer", reviewerMap.get(key));
@@ -278,9 +349,36 @@ export const Stats = () => {
         value.reviews.push(review);
       }
     }
-    console.log("myCountries in stats:", myCountries);
 
-    setCountries(myCountries);
+    // sort all the movies
+
+    // loop through mycountries
+
+    // lol this is so dodgy, I should definitely like set the values and get them with the keys
+    for (const [key, countryWithStats] of myCountries) {
+      countryWithStats.avg_score =
+        countryWithStats.movies.reduce((acc, movie) => acc + movie.score, 0) /
+        countryWithStats.movies.length;
+      countryWithStats.best_genre = findTopGenre(countryWithStats.movies);
+    }
+    // const entries = Array.from(myCountries.entries());
+    const sortedEntries = Array.from(myCountries.entries()).sort(
+      ([, country1], [, country2]) => country2.avg_score - country1.avg_score
+    );
+
+    sortedEntries.forEach(([key, player], index) => {
+      myCountries.set(key, { ...player, rank: index + 1 });
+    });
+
+    // console.log("myCountries", myCountries);
+
+    setcountriesMap(myCountries);
+
+    setCountriesList(
+      Array.from(myCountries.values()).sort(
+        (country1, country2) => country2.avg_score - country1.avg_score
+      )
+    );
     // add all these to an row object
     const ranks = [];
     // add the number watched to each entry
@@ -357,7 +455,49 @@ export const Stats = () => {
         {" "}
         Movie Map
       </Typography>
-      <MovieLocationMap countries={countries} />
+      <MovieLocationMap countryList={countriesMap} />
+      <Typography
+        variant="h3"
+        fontSize="1.8em"
+        color={theme.palette.primary.main}
+      >
+        Country Stats
+      </Typography>
+      <TableContainer component={Paper} sx={{ width: "90vw" }}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Rank </TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell align="center">Watched</TableCell>
+              <TableCell align="center">Avg Review</TableCell>
+              <TableCell align="center">Fav Genre</TableCell>
+              {/* <TableCell align="right">Avg Suggested</TableCell> */}
+              {/* <TableCell align="right">Streak</TableCell> */}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {countriesList.map((row) => (
+              <TableRow
+                key={row.name}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell align="left">{row.rank}</TableCell>
+                <TableCell component="th" scope="row">
+                  {row.name}
+                </TableCell>
+                <TableCell align="center">{row.count}</TableCell>
+                <TableCell align="center">{row.avg_score.toFixed(2)}</TableCell>
+                <TableCell align="center">{row.best_genre.name}</TableCell>
+                {/* <TableCell align="right">
+                  {row..toFixed(2)}
+                </TableCell> */}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
       <Typography
         variant="h3"
         fontSize="1.8em"
@@ -365,16 +505,16 @@ export const Stats = () => {
       >
         Member Stats
       </Typography>
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ width: "90vw" }}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
               <TableCell>Rank </TableCell>
               <TableCell>Name</TableCell>
-              <TableCell align="right">Watched</TableCell>
-              <TableCell align="right">Avg Review</TableCell>
-              <TableCell align="right">Fav Genre</TableCell>
-              <TableCell align="right">Avg Suggested</TableCell>
+              <TableCell align="center">Watched</TableCell>
+              <TableCell align="center">Avg Review</TableCell>
+              <TableCell align="center">Fav Genre</TableCell>
+              <TableCell align="center">Avg Suggested</TableCell>
               {/* <TableCell align="right">Streak</TableCell> */}
             </TableRow>
           </TableHead>
@@ -388,10 +528,12 @@ export const Stats = () => {
                 <TableCell component="th" scope="row">
                   {row.name}
                 </TableCell>
-                <TableCell align="right">{row.watched}</TableCell>
-                <TableCell align="right">{row.avg_review.toFixed(2)}</TableCell>
-                <TableCell align="right">{row.fav_genre}</TableCell>
-                <TableCell align="right">
+                <TableCell align="center">{row.watched}</TableCell>
+                <TableCell align="center">
+                  {row.avg_review.toFixed(2)}
+                </TableCell>
+                <TableCell align="center">{row.fav_genre}</TableCell>
+                <TableCell align="center">
                   {row.avg_suggested.toFixed(2)}
                 </TableCell>
               </TableRow>

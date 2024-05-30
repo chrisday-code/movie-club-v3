@@ -18,14 +18,14 @@ export const Login = ({ setShowLogin }: LoginProps) => {
 
   // todo remove this
   useEffect(() => {
-    console.log("authContext.isAuthenticated:", authContext.isAuthenticated);
+    // console.log("authContext.isAuthenticated:", authContext.isAuthenticated);
   }, [authContext.isAuthenticated]);
 
   const tryLogin = () => {
-    console.log("password: ", password);
+    // console.log("password: ", password);
     // check valid user
     if (validUsers.some((valid) => valid === user)) {
-      console.log("valid", user);
+      // console.log("valid", user);
       setUserError(false);
       if (authkey === password) {
         authContext.login(user);
@@ -35,7 +35,7 @@ export const Login = ({ setShowLogin }: LoginProps) => {
         setPassError(true);
       }
     } else {
-      console.log("invalid", user);
+      // console.log("invalid", user);
       setUserError(true);
     }
   };

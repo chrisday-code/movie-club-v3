@@ -25,7 +25,7 @@ export const Rankings = () => {
   const sortMovies = (movieList: MovieClubDataType[]) => {
     return movieList.sort((a, b) => {
       if (a.rank === undefined || b.rank === undefined) {
-        return a.runtime - b.runtime;
+        return a.runtime - b.runtime; //lol why
       }
       if (b.rank === -1) {
         return -1;

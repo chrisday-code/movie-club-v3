@@ -84,7 +84,7 @@ export const ReviewerComponent = ({
       ? reviewerOrder.get(review.reviewer)
       : 0;
     if (!reviewerIndex) {
-      console.log("index wrong");
+      // console.log("index wrong");
       return;
     }
     for (const [index, row] of movieRows.entries()) {
@@ -95,14 +95,14 @@ export const ReviewerComponent = ({
         row.get("Imdb") ===
         `https://www.imdb.com/title/${movieDetails.imdb_id}/`
       ) {
-        console.log("found the movie", row.get("Title"));
+        // console.log("found the movie", row.get("Title"));
         const reviewCell = await movieSheet.getCell(index + 1, reviewerIndex);
         reviewCell.value = reviewString;
         break;
       }
     }
     movieSheet.saveUpdatedCells();
-    console.log("done movies");
+    // console.log("done movies");
   };
   // Make this uneditable by default and then click some icon to switch it to edit mode, only available when logged in
   return (
@@ -111,7 +111,7 @@ export const ReviewerComponent = ({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        width: { xs: "200px", sm: "250px" },
+        width: { xs: "180px", md: "250px" },
       }}
     >
       {/* TODO maybe these get bigger on click */}

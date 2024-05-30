@@ -62,8 +62,8 @@ export const Settings = () => {
           imdbId +
           "?external_source=imdb_id";
         const movies = await fetch(url, options).then((data) => data.json());
-        console.log(row.get("Title"));
-        console.log(movies.movie_results[0].id);
+        // console.log(row.get("Title"));
+        // console.log(movies.movie_results[0].id);
         tmdbId = movies.movie_results[0].id;
         const tmdbCell = await sheet.getCell(i, 3);
         tmdbCell.value = movies.movie_results[0].id;
@@ -71,7 +71,6 @@ export const Settings = () => {
 
       const url = `https://api.themoviedb.org/3/movie/${tmdbId}`;
       const movie = await fetch(url, options).then((data) => data.json());
-      console.log("movie: ", movie);
       const country = await sheet.getCell(i, 22);
       country.value = movie.origin_country.join();
 
@@ -93,10 +92,8 @@ export const Settings = () => {
       //genre
       const genre = await sheet.getCell(i, 14);
       const genreContent = movie.genres.map((val: any) => {
-        console.log("id: ", val.id, "name: ", val.name);
         return `{"id": ${val.id}, "name": "${val.name}"}`;
       });
-      console.log(genreContent.join("|"));
       genre.value = genreContent.join("|");
 
       //poster
@@ -125,7 +122,6 @@ export const Settings = () => {
 
       i++;
     }
-    console.log("ending");
     sheet.saveUpdatedCells();
     return;
   };

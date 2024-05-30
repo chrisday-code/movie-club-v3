@@ -1,19 +1,39 @@
 import { motion } from "framer-motion";
 import { Grid, Typography, Box } from "@mui/material";
-import { MovieClubDataType, GenreType, SuggestorsFilter } from "../types";
+import {
+  MovieClubDataType,
+  GenreType,
+  SuggestorsFilter,
+  ReviewType,
+} from "../types";
 import { FaTrophy } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
 import { IconContext } from "react-icons";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface TileProps {
   movie: MovieClubDataType;
 }
 
 export const MovieTile = ({ movie }: TileProps) => {
+  const [clicked, setClicked] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
+
+  const renderReviews = (reviews: ReviewType[]) => {
+    return reviews.map((review: ReviewType) => {
+      return (
+        <Box>
+          <Typography>
+            {review.reviewer} - {review.rating}
+          </Typography>
+        </Box>
+      );
+    });
+  };
+
   return (
     <Box
       component={motion.div}
@@ -29,15 +49,42 @@ export const MovieTile = ({ movie }: TileProps) => {
         padding: "6px",
       }}
     >
-      <img
+      {/* <Box
+        // component="img"
         src={"https://image.tmdb.org/t/p/w500/" + movie.poster_path}
         alt=""
         width="100%"
-        style={{
+        sx={{
           margin: "",
           borderRadius: "2%",
         }}
-      />
+        onClick={() => {
+          setClicked(!clicked);
+        }}
+      ></Box> */}
+      <Box
+        onClick={() => {
+          setClicked(!clicked);
+        }}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          borderRadius: "2%",
+          //     background: `linear-gradient(
+          //   rgba(0, 0, 0, 0.8),
+          //   rgba(0, 0, 0, 0.8)
+          // ),url(
+          //   'https://image.tmdb.org/t/p/original/${movie.poster_path}')`,
+          background: `url('https://image.tmdb.org/t/p/original/${movie.poster_path}')`,
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          height: "200px",
+          width: "100%",
+        }}
+      >
+        {clicked && <Box>clicked</Box>}
+      </Box>
       <Box
         display="flex"
         flexDirection="row"
@@ -60,7 +107,7 @@ export const MovieTile = ({ movie }: TileProps) => {
         variant="h5"
         sx={{ fontSize: "0.9em", textAlign: "center", cursor: "pointer" }}
         onClick={() => {
-          console.log("going to: ", movie.id);
+          // console.log("going to: ", movie.id);
           navigate(`/movies/${movie.id}`);
         }}
       >

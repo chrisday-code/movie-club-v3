@@ -160,7 +160,7 @@ export const Filter = ({
         )
       );
     });
-    console.log("filtered: ", filtered);
+    // console.log("filtered: ", filtered);
     setFiltered(filtered);
   };
 

@@ -39,7 +39,7 @@ export const Search = () => {
         });
         // i++;
       }
-      console.log("results.results:", results.results);
+      // console.log("results.results:", results.results);
       setSearchResults([...newSearchResults]);
     };
     if (params.query) {
@@ -67,13 +67,6 @@ export const Search = () => {
         minHeight: "89vh",
       }}
     >
-      {/* <Typography
-        variant="h2"
-        color={theme.palette.primary.main}
-        sx={{ paddingBottom: "1em" }}
-      >
-        Search for a movie
-      </Typography> */}
       {!loading &&
         searchResults.map((result, index) => {
           return <SearchResult result={result}></SearchResult>;

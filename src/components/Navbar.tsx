@@ -150,7 +150,7 @@ export const Navbar = () => {
 
   const handleChange = (event: any) => {
     const value = event.target.value;
-    console.log("handling change,", event);
+    // console.log("handling change,", event);
     setSearch(value);
     searchApi();
   };
@@ -216,13 +216,13 @@ export const Navbar = () => {
             justifyContent: "space-between",
           }}
         >
-          <Typography variant="h4" color="inherit" component="div">
+          <Typography variant="h4" color="inherit" minWidth="150px">
             Movie Club
           </Typography>
           <Box
             sx={{
               flexGrow: 1,
-              margin: "0 5% 0% 5%",
+              margin: "0 2% 0% 5%",
             }}
             onFocus={searchFocussed}
             onBlur={handleBlur}
@@ -247,13 +247,7 @@ export const Navbar = () => {
                       to={`/search/${search}`}
                       style={{ textDecoration: "none", color: "inherit" }}
                     >
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={() => {
-                          console.log("clicked search, value is ", search);
-                        }}
-                        edge="end"
-                      >
+                      <IconButton aria-label="search" edge="end">
                         {<SearchIcon />}
                       </IconButton>
                     </Link>

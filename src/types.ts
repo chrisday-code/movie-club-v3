@@ -20,7 +20,12 @@ export interface DetailedSearchResult {
 
 // TODO add movies to each country
 export interface Country {
+  id: string;
   name: string;
+  rank: number;
+  movies: MovieClubDataType[];
+  avg_score: number;
+  best_genre: GenreReview;
   count: number;
 }
 
@@ -165,6 +170,7 @@ export type MoviePage = {
   rank: number;
   poster_path?: string;
   director: Array<string>;
+  suggestor: string;
   budget: number;
   overview: string;
   genres: Genre[];

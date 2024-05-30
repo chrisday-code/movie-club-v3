@@ -99,7 +99,7 @@ const Spinner = ({
 
   const spinTheWheel = () => {
     if (segments === 0) {
-      console.log("why are you spinning this");
+      // console.log("why are you spinning this");
       return;
     }
     const degrees = 360 * 3 + rotation + Math.random() * 360;
@@ -282,12 +282,12 @@ export const Spin = () => {
       }
       console.log("i", i);
       if (i > 7 && i < 20) {
-        console.log("in");
+        // console.log("in");
         const cell = await sheet.getCell(i, 13);
         // console.log("cell:", cell.value);
         //if its bold
         if (cell.textFormat.bold === true) {
-          console.log(cell.value);
+          // console.log(cell.value);
           setNextWeek(cell.value ? cell.value.toString() : "");
         }
       }
@@ -392,6 +392,7 @@ export const Spin = () => {
         backgroundColor: theme.palette.background.default,
         color: "whiteSmoke",
         paddingTop: "5vh",
+        paddingBottom: { xs: "10vh", md: "0vh" },
       }}
     >
       {" "}
