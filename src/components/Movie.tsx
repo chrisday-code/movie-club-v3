@@ -103,10 +103,9 @@ export const Movie = () => {
             ) {
               continue;
             }
-            // console.log("in");
             const cell = await movieSheet.getCell(index + 1, 13);
-            if (cell.textFormat.bold === true) {
-              // console.log(cell.value);
+            if (cell?.effectiveFormat?.textFormat?.bold ?? false) {
+              console.log("winner!:", cell.value);
               setNextWeek(cell.value ? cell.value.toString() : "");
             }
           }
@@ -315,7 +314,7 @@ export const Movie = () => {
     // this one adds it to the list
   };
 
-  // TODO add to the computer sheet as well
+  // TODO add to the computer sheet as well (done)
   const addMovieToList = async () => {
     if (!movieDetails) return;
     const title = `${movieDetails.title} (${

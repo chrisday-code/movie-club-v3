@@ -1,3 +1,4 @@
+//todo use the same types even one time lmao
 export type ReviewType = {
   reviewer: string;
   rating: string;
@@ -16,6 +17,7 @@ export interface DetailedSearchResult {
   title: string;
   poster_path: string;
   release_date: string;
+  // imdb_id?: number;
 }
 
 // TODO add movies to each country
@@ -181,6 +183,12 @@ export type MoviePage = {
   backdrop_path?: string;
   reviews?: Array<ReviewType>;
 };
+
+export interface BaseMovie {
+  id: number;
+  title: string;
+  release_date: string;
+}
 
 export type Director = {
   false: boolean;

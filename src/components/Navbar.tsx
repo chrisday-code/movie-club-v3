@@ -274,6 +274,32 @@ export const Navbar = () => {
             </form>
           </Box>
           <Box>{links(false)}</Box>
+          <Box sx={{ display: { xs: "flex", md: "none" } }}>
+            <IconButton
+              aria-label="delete"
+              size="large"
+              sx={{ height: "40px", width: "40px" }}
+              onClick={() => {
+                setShowLogin(!showLogin);
+              }}
+            >
+              <VpnKey fontSize="inherit" />
+            </IconButton>
+            {showLogin && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  padding: "20px 5px 5px 5px",
+                  right: "0px",
+                  top: "10px",
+                  zIndex: "10",
+                }}
+                bgcolor={theme.palette.background.navbar}
+              >
+                <Login setShowLogin={setShowLogin} />
+              </Box>
+            )}
+          </Box>
         </Toolbar>
       </AppBar>
     </Box>

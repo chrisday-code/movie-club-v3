@@ -13,6 +13,7 @@ import { JWT } from "google-auth-library";
 import creds from "../.config/movie-club-394513-ccb57476d1f7.json";
 import { GOOGLE_SHEET_ID } from "../.config/google-sheets";
 import { GoogleSpreadsheet } from "google-spreadsheet";
+import { Login } from "./Login";
 import {
   ReviewType,
   MovieDetailsFromApi,
@@ -21,7 +22,15 @@ import {
   MoviePage,
   Director,
   Suggestion,
+  BaseMovie,
+  DetailedSearchResult,
 } from "../types";
+
+import { SearchResult } from "./SearchResult";
+
+import { useContext } from "react";
+import { options } from "../.config/tmdb-options";
+import { AuthContext } from "../AuthContext";
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 
 //set a textrotation in this spinner
@@ -45,7 +54,7 @@ interface SpinnerProps {
   segments: number;
   winner: string;
   setWinner: React.Dispatch<React.SetStateAction<string>>;
-  options: Array<string>;
+  movieSuggestions: Array<string>;
   width: number;
   height: number;
   circleRadius: number;
@@ -55,7 +64,7 @@ const Spinner = ({
   segments,
   winner,
   setWinner,
-  options,
+  movieSuggestions,
   width,
   height,
   circleRadius,
@@ -86,15 +95,15 @@ const Spinner = ({
     // console.log("over!", degrees % 360);
     const segmentSelected =
       segments - Math.floor((angleRotated - winningAngle) / segmentSize) - 1;
-    // console.log("winner is: ", options[segmentSelected]);
+    // console.log("winner is: ", movieSuggestions[segmentSelected]);
     // so we go round the circle backwards in radians..........
     // this means that
     // "#e6194B", // Red
     // "#3cb44b", // Green
     // "#ffe119", // Yellow
-    setWinner(options[segmentSelected]);
+    setWinner(movieSuggestions[segmentSelected]);
 
-    return options[segmentSelected];
+    return movieSuggestions[segmentSelected];
   };
 
   const spinTheWheel = () => {
@@ -158,7 +167,7 @@ const Spinner = ({
       startY: centre.ry + getCircleY((i * 2 * Math.PI) / segments),
       endX: centre.rx + getCircleX(((i + 1) * 2 * Math.PI) / segments),
       endY: centre.rx + getCircleY(((i + 1) * 2 * Math.PI) / segments),
-      text: options[i],
+      text: movieSuggestions[i],
       textAngle: 360 / segments / 2 + i * (360 / segments),
     };
     segmentCoords.push(newSegment);
@@ -211,7 +220,7 @@ const Spinner = ({
               // transform={`rotate(${segment.textAngle}, ${centre.rx}, ${centre.ry})`}
               dominantBaseline="central"
             >
-              {options.length === 1 ? options[0] : ""}
+              {movieSuggestions.length === 1 ? movieSuggestions[0] : ""}
             </text>
           </g>
         )}
@@ -232,13 +241,19 @@ const Spinner = ({
 };
 
 export const Spin = () => {
+  const authContext = useContext(AuthContext);
   const [isOpen, setOpen] = React.useState(false);
   const initialized = useRef(false);
   const [winner, setWinner] = useState("");
   const [textFieldSuggestions, setTextFieldSuggestions] = useState("");
   const [nextWeek, setNextWeek] = useState("");
+  const [guesses, setGuesses] = useState<DetailedSearchResult[]>([]);
   const theme = useTheme();
-  const [options, setOptions] = useState<Array<string>>([]);
+  //TODO get rid of this one and use the one below it
+  const [movieSuggestions, setmovieSuggestions] = useState<Array<string>>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  //TODO fix the login component to not need this
+  const [showLogin, setShowLogin] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -253,6 +268,138 @@ export const Spin = () => {
     key: creds.private_key,
     scopes: SCOPES,
   });
+
+  const addMovieToList = async (movieDetails: BaseMovie, suggestor: string) => {
+    if (!movieDetails) return;
+    const title = `${movieDetails.title} (${
+      movieDetails.release_date.split("-")[0]
+    })`;
+
+    console.log("movieDetails:", movieDetails);
+
+    // read the list incase someone else has added a row inbetween
+    const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID, jwt);
+    await doc.loadInfo(); // loads document properties and worksheets
+    const movieSheet = doc.sheetsByTitle["Movies"]; // or use `doc.sheetsById[id]` or `doc.sheetsByTitle[title]`
+    const movieRows = await movieSheet.getRows({ limit: 300 });
+    await movieSheet.loadCells("A1:C300");
+    const url =
+      "https://api.themoviedb.org/3/find/" +
+      movieDetails.id +
+      "?external_source=imdb_id";
+    const external_ids = await fetch(url, options).then((data) => data.json());
+
+    for (const [index, row] of movieRows.entries()) {
+      if (index < 2) {
+        continue;
+      }
+      if (row.get("Title") === "" || row.get("Title") === undefined) {
+        const userCell = await movieSheet.getCell(index + 1, 0);
+        userCell.value = suggestor;
+        const titleCell = await movieSheet.getCell(index + 1, 1);
+        titleCell.value = title;
+        titleCell.textFormat = { bold: true };
+        const imdbCell = await movieSheet.getCell(index + 1, 2);
+        imdbCell.value = `https://www.imdb.com/title/${external_ids.imdb_id}/`;
+        break;
+      }
+    }
+    movieSheet.saveUpdatedCells();
+
+    return;
+
+    //does the computer bit
+    const sheet = doc.sheetsByTitle["computer"]; // or use `doc.sheetsById[id]` or `doc.sheetsByTitle[title]`
+    const rows = await sheet.getRows();
+    let i = 1;
+    await sheet.loadCells("A1:Z300");
+    // do the [object, index ] of array.entries() here instead
+    for (const row of rows) {
+      if (i === 1) {
+        i++;
+        continue;
+      }
+      if (row.get("Poster")) {
+        i++;
+        continue;
+      }
+      let tmdbId = row.get("Tmdb");
+      const imdburl = row.get("Imdb");
+      if (tmdbId === "" && imdburl === "") {
+        i++;
+        continue;
+      }
+      if (tmdbId === "") {
+        if (imdburl === "") {
+          i++;
+          continue;
+        }
+        const imdbId = imdburl.match(/tt\d+/)[0];
+        const url =
+          "https://api.themoviedb.org/3/find/" +
+          imdbId +
+          "?external_source=imdb_id";
+        const movies = await fetch(url, options).then((data) => data.json());
+        // console.log(row.get("Title"));
+        // console.log(movies.movie_results[0].id);
+        tmdbId = movies.movie_results[0].id;
+        const tmdbCell = await sheet.getCell(i, 3);
+        tmdbCell.value = movies.movie_results[0].id;
+      }
+
+      const url = `https://api.themoviedb.org/3/movie/${tmdbId}`;
+      const movie = await fetch(url, options).then((data) => data.json());
+      const tmdb_title = await sheet.getCell(i, 20);
+      tmdb_title.value = movie.title;
+
+      const release_date = await sheet.getCell(i, 21);
+      release_date.value = movie.release_date;
+
+      const directorCredits = await fetch(
+        `https://api.themoviedb.org/3/movie/${tmdbId}/credits`,
+        options
+      )
+        .then((response) => response.json())
+        .then((jsonData) =>
+          jsonData.crew.filter((person: any) => person.job === "Director")
+        );
+
+      //genre
+      const genre = await sheet.getCell(i, 14);
+      const genreContent = movie.genres.map((val: any) => {
+        return `{"id": ${val.id}, "name": "${val.name}"}`;
+      });
+      genre.value = genreContent.join("|");
+
+      //poster
+      const poster = await sheet.getCell(i, 12);
+      poster.value = movie.poster_path;
+      //background
+      const backdrop_path = await sheet.getCell(i, 13);
+      backdrop_path.value = movie.backdrop_path;
+
+      const director = await sheet.getCell(i, 15);
+      director.value = directorCredits[0]?.name;
+
+      const budget = await sheet.getCell(i, 16);
+      budget.value = movie.budget;
+
+      const revenue = await sheet.getCell(i, 17);
+      revenue.value = movie.revenue;
+
+      const runtime = await sheet.getCell(i, 18);
+      runtime.value = movie.runtime;
+
+      const tmdbScore = await sheet.getCell(i, 19);
+      tmdbScore.value = movie.vote_average;
+
+      //genres
+
+      i++;
+    }
+    sheet.saveUpdatedCells();
+    return;
+  };
 
   const getNextWeeksMovie = async () => {
     const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID, jwt);
@@ -321,7 +468,8 @@ export const Spin = () => {
       });
       // console.log(`row:`, row);
     }
-    setOptions(
+    setSuggestions([...sheetSuggestions]);
+    setmovieSuggestions(
       sheetSuggestions.map((suggestion: Suggestion) => suggestion.title)
     );
     setTextFieldSuggestions(
@@ -363,7 +511,7 @@ export const Spin = () => {
       i++;
     }
     sheet.saveUpdatedCells();
-    setOpen(false);
+    // setOpen(false);
     return;
   };
 
@@ -380,7 +528,42 @@ export const Spin = () => {
   useEffect(() => {
     if (winner === "") return;
     setOpen(true);
+    // call the api and set the guesses here
+    const searchApi = async (combinedTitle: string) => {
+      const regex = /(.*) \((\d{4})\)/;
+      // Execute the regex on the input string
+      const match = combinedTitle.match(regex);
+      if (!match) {
+        return;
+      }
+      // Return the matched title and year as an array
+      const title = match[1];
+      const year = match[2];
+
+      const url = `https://api.themoviedb.org/3/search/movie?query=${title}&include_adult=false&language=en-USprimary_release_year=${year}&page=1`;
+      const results = await fetch(url, options).then((data) => data.json());
+      const newSearchResults: DetailedSearchResult[] = [];
+      for (const result of results.results) {
+        console.log(result);
+        newSearchResults.push({
+          id: result.id,
+          title: result.title,
+          poster_path: result.poster_path,
+          release_date: result.release_date,
+        });
+      }
+      setGuesses([...newSearchResults]);
+    };
+    if (winner) {
+      searchApi(winner);
+    } else {
+      setGuesses([]);
+    }
   }, [winner]);
+
+  useEffect(() => {
+    console.log("guesses", guesses);
+  }, [guesses]);
 
   return (
     <Box
@@ -406,10 +589,15 @@ export const Spin = () => {
         }}
       >
         {/* hack for a smaller one */}
-        <Box sx={{ minHeight: "200px", display: { xs: "none", sm: "block" } }}>
+        <Box
+          sx={{ minHeight: "200px", display: { xs: "none", sm: "block" } }}
+          onClick={() => {
+            setGuesses([]);
+          }}
+        >
           <Spinner
-            segments={options.length}
-            options={options}
+            segments={movieSuggestions.length}
+            movieSuggestions={movieSuggestions}
             winner={winner}
             setWinner={setWinner}
             width={600}
@@ -419,8 +607,8 @@ export const Spin = () => {
         </Box>
         <Box sx={{ minHeight: "200px", display: { xs: "block", sm: "none" } }}>
           <Spinner
-            segments={options.length}
-            options={options}
+            segments={movieSuggestions.length}
+            movieSuggestions={movieSuggestions}
             winner={winner}
             setWinner={setWinner}
             width={400}
@@ -453,16 +641,17 @@ export const Spin = () => {
             Get Suggestions
           </Button>
           <TextField
-            id="options"
-            label="Options"
+            id="movieSuggestions"
+            label="movieSuggestions"
             variant="outlined"
             value={textFieldSuggestions}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
               setTextFieldSuggestions(event.target.value);
-              setOptions(
+              setmovieSuggestions(
                 event.target.value.split("\n").filter((word) => word !== "")
               );
             }}
+            sx={{ minWidth: "400px" }}
             multiline
           />
           <Dialog
@@ -474,14 +663,73 @@ export const Spin = () => {
             <DialogTitle id="alert-dialog-title">{"Winner!!"}</DialogTitle>
             <DialogContent>
               <DialogContentText id="alert-dialog-description">
-                The winner is {winner}!
+                <Typography variant="body1">The winner is {winner} </Typography>
+                {!authContext.isAuthenticated && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1em",
+                    }}
+                  >
+                    <Typography variant="body1">Login to Add Movie</Typography>
+                    <Login setShowLogin={setShowLogin} />
+                  </Box>
+                )}
+                {authContext.isAuthenticated &&
+                  guesses.map((result, index) => {
+                    return (
+                      <Box
+                        key={index}
+                        onClick={(e) => {
+                          setMovieAsWinner();
+                          console.log(result);
+                          // export interface BaseMovie {
+                          //   imdb_id: string;
+                          //   title: string;
+                          //   release_date: string;
+                          // }
+                          // console.log(
+                          //   suggestions.find(
+                          //     (element: Suggestion) => element.title === winner
+                          //   )?.suggestor ?? "No Idea"
+                          // );
+                          addMovieToList(
+                            {
+                              id: result.id as number,
+                              title: result.title as string,
+                              release_date: result.release_date as string,
+                            } as BaseMovie,
+                            suggestions.find(
+                              (element: Suggestion) => element.title === winner
+                            )?.suggestor ?? "No Idea"
+                          );
+                          setOpen(false);
+                          e.preventDefault();
+                        }}
+                      >
+                        <SearchResult
+                          result={result}
+                          noNav={true}
+                        ></SearchResult>
+                      </Box>
+                    );
+                  })}
               </DialogContentText>
+              {/* guesses */}
             </DialogContent>
             <DialogActions>
-              <Button onClick={setMovieAsWinner}>Set as Next Week</Button>
+              {/* <Button
+                onClick={setMovieAsWinner}
+                // TODO enable this
+                // disabled={!authContext.isAuthenticated}
+              >
+                Add movie
+              </Button> */}
               <Button onClick={handleClose}>Close</Button>
             </DialogActions>
           </Dialog>
+          {/* showGuesses */}
         </Box>
       </Box>
     </Box>

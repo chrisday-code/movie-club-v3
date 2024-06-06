@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 //TODO understand why this should take any
-export const SearchResult = ({ result }: any) => {
+export const SearchResult = ({ result, noNav }: any) => {
   const [hovered, setHovered] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
@@ -33,6 +33,9 @@ export const SearchResult = ({ result }: any) => {
         setHovered(false);
       }}
       onClick={() => {
+        if (noNav) {
+          return;
+        }
         navigateToMovie(result.id);
       }}
     >
@@ -52,23 +55,5 @@ export const SearchResult = ({ result }: any) => {
         <Typography variant="h5">{result.release_date}</Typography>
       </Box>
     </Box>
-    // <Grid
-    //   container
-    //   sx={{ width: "100%", cursor: "pointer" }}
-    //   onClick={() => {
-    //     console.log("id:", result.id);
-    //     navigateToMovie(result.id);
-    //   }}
-    // >
-    //   <Grid item xs={8}>
-    //     <Typography variant="h3">{result.title}</Typography>
-    //   </Grid>
-    //   <Grid item xs={4}>
-    //     <Typography variant="h3">{result.release_date}</Typography>
-    //   </Grid>
-    //   {/* <Grid item xs={4}>
-    //     <Typography variant="h3">{result.title}</Typography>
-    //   </Grid> */}
-    // </Grid>
   );
 };

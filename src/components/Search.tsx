@@ -69,7 +69,7 @@ export const Search = () => {
     >
       {!loading &&
         searchResults.map((result, index) => {
-          return <SearchResult result={result}></SearchResult>;
+          return <SearchResult key={index} result={result}></SearchResult>;
         })}
       {searchResults.length === 0 && (
         <Typography
